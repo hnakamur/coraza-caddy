@@ -17,11 +17,43 @@ func TestLongResponseBody(t *testing.T) {
 	const responseBodyLimit = 64
 
 	testCases := []struct {
-		testName      string
-		contentLength int
+		testName           string
+		action             string
+		contentLength      int
+		expectedStatusCode int
 	}{
-		{testName: "EqualToLimit", contentLength: responseBodyLimit},
-		{testName: "OneByteLongerThanLimit", contentLength: responseBodyLimit + 1},
+		{
+			testName:           "EqualToLimit_ProcessPartial",
+			action:             "ProcessPartial",
+			contentLength:      responseBodyLimit,
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			testName:           "OneByteLongerThanLimit_ProcessPartial",
+			action:             "ProcessPartial",
+			contentLength:      responseBodyLimit + 1,
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			testName:      "EqualToLimit_Reject",
+			action:        "Reject",
+			contentLength: responseBodyLimit,
+			// Is 413 appropriate when the response body is too long?
+			expectedStatusCode: http.StatusRequestEntityTooLarge,
+		},
+		{
+			testName:      "OneByteLongerThanLimit_Reject",
+			action:        "Reject",
+			contentLength: responseBodyLimit + 1,
+			// Is 413 appropriate when the response body is too long?
+			expectedStatusCode: http.StatusRequestEntityTooLarge,
+		},
+		{
+			testName:           "OneByteShorterThanLimit_Reject",
+			action:             "Reject",
+			contentLength:      responseBodyLimit - 1,
+			expectedStatusCode: http.StatusOK,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
@@ -47,6 +79,9 @@ func TestLongResponseBody(t *testing.T) {
 				admin localhost:%d
 				auto_https off
 				order coraza_waf first
+				log {
+					level WARN
+				}
 			}
 			(waf) {
 				coraza_waf {
@@ -55,20 +90,28 @@ func TestLongResponseBody(t *testing.T) {
 						SecResponseBodyAccess On
 						SecResponseBodyMimeType text/plain
 						SecResponseBodyLimit %d
-						SecResponseBodyLimitAction ProcessPartial
+						SecResponseBodyLimitAction %s
 					`+"`"+`
 				}
 			}
 			:%d {
 				import waf
 				reverse_proxy %s
-			}`, caddyAdminPort, responseBodyLimit, caddyPort, originServerAddr)
+			}`, caddyAdminPort, responseBodyLimit, tc.action, caddyPort, originServerAddr)
 			if err := os.WriteFile("/tmp/Caddyfile", []byte(config), 0o644); err != nil {
 				t.Fatal(err)
 			}
 			tester.InitServer(config, "caddyfile")
 
-			tester.AssertGetResponse(fmt.Sprintf("http://127.0.0.1:%d", caddyPort), 200, content)
+			if tc.expectedStatusCode == http.StatusOK {
+				tester.AssertGetResponse(fmt.Sprintf("http://127.0.0.1:%d", caddyPort), http.StatusOK, content)
+			} else {
+				req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d", caddyPort), nil)
+				if err != nil {
+					t.Fatal(err)
+				}
+				tester.AssertResponseCode(req, tc.expectedStatusCode)
+			}
 		})
 	}
 }
