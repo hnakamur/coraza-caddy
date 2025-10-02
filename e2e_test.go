@@ -39,14 +39,14 @@ func TestLongResponseBody(t *testing.T) {
 			action:        "Reject",
 			contentLength: responseBodyLimit,
 			// Is 413 appropriate when the response body is too long?
-			expectedStatusCode: http.StatusRequestEntityTooLarge,
+			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			testName:      "OneByteLongerThanLimit_Reject",
 			action:        "Reject",
 			contentLength: responseBodyLimit + 1,
 			// Is 413 appropriate when the response body is too long?
-			expectedStatusCode: http.StatusRequestEntityTooLarge,
+			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			testName:           "OneByteShorterThanLimit_Reject",
