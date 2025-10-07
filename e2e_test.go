@@ -57,7 +57,11 @@ func TestLongResponseBody(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			content := strings.Repeat("a", tc.contentLength)
+			var b strings.Builder
+			for i := range tc.contentLength {
+				b.WriteByte('0' + byte(i%10))
+			}
+			content := b.String()
 
 			originHandler := func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Length", strconv.Itoa(len(content)))
