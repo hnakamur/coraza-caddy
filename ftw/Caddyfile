@@ -3,15 +3,12 @@
 	auto_https off
 	order coraza_waf first
 	log {
-		output file "/home/caddy/logs/caddy.log"
+		output file "/build/caddy.log"
 		# Log level must be "info" or "debug" for ftw to read NOTICE level logs.
 		# The coraza-logs container filters caddy.log and writes the result to ftw.log,
 		# then ftw.log is read by ftw.
-		level info
+		level debug
 		format console # ftw is looking for plain text logs
-		# Waf logs are logged to the output file. It includes the error logs generated when a rule is triggered.
-		# These are the logs that ftw is looking for
-		include "http.handlers.waf"
 	}
 }
 

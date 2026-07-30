@@ -5,18 +5,8 @@ services:
     ports:
       - 8081:8081
 
-  chown:
-    image: alpine:3.23
-    command:
-      - /bin/sh
-      - -c
-      - touch /home/caddy/logs/caddy.log && chown -R 101:101 /home/caddy/logs
-    volumes:
-      - logs:/home/caddy/logs:rw
-
   caddy:
     depends_on:
-      - chown
       - backend
     build:
       context: ..
@@ -24,7 +14,6 @@ services:
     volumes:
       - ../build:/build
       - .:/conf
-      - logs:/home/caddy/logs:rw
     ports:
       - 8080:8080
 
@@ -35,25 +24,12 @@ services:
     entrypoint: bash
     command:
       - -c
-      - tail -c +0 -f /home/caddy/logs/caddy.log | grep --line-buffered -P '\t(\x1B\[[\d;]+m)?(ERROR|WARN|INFO)(\x1B\[0m)?\thttp.handlers.waf' > /home/caddy/logs/ftw.log
+      - tail -c +0 -f /build/caddy.log | grep --line-buffered -P '\t(\x1B\[[\d;]+m)?(ERROR|WARN|INFO)(\x1B\[0m)?\thttp.handlers.waf' > /build/ftw.log
     volumes:
-      - logs:/home/caddy/logs:rw
-
-  caddy-logs:
-    depends_on:
-      - caddy
-    image: debian:13-slim
-    entrypoint: bash
-    command:
-      - -c
-      - tail -c +0 -f /home/caddy/logs/caddy.log > /build/ftw-caddy.log
-    volumes:
-      - logs:/home/caddy/logs:ro
       - ../build:/build
 
   ftw:
     depends_on:
-      - caddy-logs
       - coraza-logs
     build:
       context: .
@@ -63,7 +39,4 @@ services:
       - FTW_INCLUDE
       - FTW_DEBUG
     volumes:
-      - logs:/home/caddy/logs:ro
       - ../build:/build
-volumes:
-  logs:
