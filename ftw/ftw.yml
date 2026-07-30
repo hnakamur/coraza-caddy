@@ -1,5 +1,5 @@
 ---
-logfile: '/home/caddy/logs/ftw.log'
+logfile: '/build/ftw.log'
 maxmarkerretries: 10
 testoverride:
   input:
@@ -31,3 +31,10 @@ testoverride:
     922130-1: ''
     922130-2: ''
     922130-7: ''
+
+    933110-3: 'The header name `X_Filename` is considered invalid and is removed by Caddy'
+    933110-13: 'The header name `X_Filename` is considered invalid and is removed by Caddy'
+    933110-14: 'The header name `X_Filename` is considered invalid and is removed by Caddy'
+    933220-2: 'The header name `X_Filename` is considered invalid and is removed by Caddy'
+    944140-3: 'The header name `X_Filename` is considered invalid and is removed by Caddy'
+    944140-8: 'The header name `X_Filename` is considered invalid and is removed by Caddy'
