@@ -31,7 +31,7 @@ main() {
   fi
 
   trap stop_docker_compose EXIT
-  docker compose run --rm ftw
+  docker compose run --rm ftw 2>&1 | tee build/ftw-run.log
 }
 
 main "$@"
