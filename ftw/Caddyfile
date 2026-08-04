@@ -25,6 +25,9 @@
 		SecDefaultAction "phase:4,log,auditlog,pass"
 		SecDefaultAction "phase:5,log,auditlog,pass"
 		SecDebugLogLevel 3
+		SecAuditLog "/build/coraza-audit.log"
+		SecAuditEngine "On"
+		SecAuditLogType "serial"
 
 		SecAction "id:900005,\
 			phase:1,\
