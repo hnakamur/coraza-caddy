@@ -16,5 +16,7 @@ RUN cd coreruleset && tar -xf ${CRS_VERSION}.tar.gz --strip-components 1
 COPY ftw.yml /workspace/ftw.yml
 COPY tests.sh /workspace/tests.sh
 
+COPY go-ftw /ftw
+
 ENTRYPOINT ["sh"]
 CMD ["-c", "/workspace/tests.sh"]
